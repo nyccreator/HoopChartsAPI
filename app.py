@@ -37,7 +37,7 @@ def get_games_by_date(date):
 
     # Query for games on the specified date
     game_finder = leaguegamefinder.LeagueGameFinder(
-        date_from_nullable=formatted_date, date_to_nullable=formatted_date
+        date_from_nullable=formatted_date, date_to_nullable=formatted_date, timeout=120
     )
 
     # Get the games DataFrame

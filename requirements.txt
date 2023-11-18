@@ -1,4 +1,4 @@
-flask==3.0.0
+flask==2.2.5
 matplotlib==3.8.2
 nba_api==1.4.0
 numpy==1.26.2

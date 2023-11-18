@@ -1,4 +1,6 @@
 flask
+Flask-CORS
+gunicorn
 matplotlib
 nba_api
 numpy

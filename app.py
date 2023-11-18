@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, send_file, request
+from flask_cors import CORS
 from matplotlib import pyplot as plt
 from matplotlib.patches import Circle, Rectangle, Arc
 from datetime import datetime
@@ -9,6 +10,7 @@ import matplotlib.colors as mc
 import colorsys
 
 app = Flask(__name__)
+CORS(app)
 
 # Configuration Constants
 SHOT_CHART_FILENAME_TEMPLATE = "{game_id_nullable}_{team_id}_{player_id}_shot_chart.png"
@@ -240,4 +242,4 @@ def get_todays_scoreboard():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)

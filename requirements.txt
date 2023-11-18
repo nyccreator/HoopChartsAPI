@@ -1,9 +1,9 @@
-flask==2.2.5
-matplotlib==3.8.2
-nba_api==1.4.0
-numpy==1.26.2
-pandas==2.1.3
-python_dateutil==2.8.2
-requests==2.31.0
-urllib3==2.1.0
+flask
+matplotlib
+nba_api
+numpy
+pandas
+python_dateutil
+requests
+urllib3
 

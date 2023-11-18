@@ -81,6 +81,7 @@ def generate_shot_chart(
         team_id=team_id,
         context_measure_simple=context_measure_simple,
         season_type_all_star=season_type_all_star,
+        timeout=120,
     )
     shot_dataframe = shot_detail.get_data_frames()[0]
 

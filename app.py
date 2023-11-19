@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, send_file, request
+from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_cors import CORS
 from matplotlib import pyplot as plt
 from matplotlib.patches import Circle, Rectangle, Arc
@@ -11,6 +12,8 @@ import colorsys
 
 app = Flask(__name__)
 CORS(app)
+# Add the following line to use the ProxyFix middleware
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
 # Configuration Constants
 SHOT_CHART_FILENAME_TEMPLATE = "{game_id_nullable}_{team_id}_{player_id}_shot_chart.png"

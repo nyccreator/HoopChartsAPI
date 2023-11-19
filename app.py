@@ -18,6 +18,20 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 # Configuration Constants
 SHOT_CHART_FILENAME_TEMPLATE = "{game_id_nullable}_{team_id}_{player_id}_shot_chart.png"
 
+STATS_HEADERS = {
+    "Host": "stats.nba.com",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0",
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "en-US,en;q=0.5",
+    "Accept-Encoding": "gzip, deflate, br",
+    "x-nba-stats-origin": "stats",
+    "x-nba-stats-token": "true",
+    "Connection": "keep-alive",
+    "Referer": "https://stats.nba.com/",
+    "Pragma": "no-cache",
+    "Cache-Control": "no-cache",
+}
+
 
 # Endpoint to get a team by abbreviation
 # Sample URL: http://127.0.0.1:5000/api/nba/team/LAL
@@ -40,7 +54,9 @@ def get_games_by_date(date):
 
     # Query for games on the specified date
     game_finder = leaguegamefinder.LeagueGameFinder(
-        date_from_nullable=formatted_date, date_to_nullable=formatted_date, timeout=120
+        date_from_nullable=formatted_date,
+        date_to_nullable=formatted_date,
+        headers=STATS_HEADERS,
     )
 
     # Get the games DataFrame
@@ -84,7 +100,7 @@ def generate_shot_chart(
         team_id=team_id,
         context_measure_simple=context_measure_simple,
         season_type_all_star=season_type_all_star,
-        timeout=120,
+        headers=STATS_HEADERS,
     )
     shot_dataframe = shot_detail.get_data_frames()[0]
 

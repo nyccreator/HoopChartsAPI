@@ -10,6 +10,11 @@ from nba_api.stats.endpoints import shotchartdetail, leaguegamefinder
 import matplotlib.colors as mc
 import colorsys
 
+# Use the 'Agg' backend for Matplotlib
+import matplotlib
+
+matplotlib.use("Agg")
+
 app = Flask(__name__)
 CORS(app)
 # Add the following line to use the ProxyFix middleware
@@ -259,7 +264,3 @@ def draw_court(ax=None, color=lighten_color("White", 1), lw=3, outer_lines=False
 def get_todays_scoreboard():
     games = scoreboard.ScoreBoard()
     return jsonify(games.get_dict())
-
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)

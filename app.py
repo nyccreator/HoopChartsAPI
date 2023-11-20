@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, send_file, request
+from nba_api.stats.library.parameters import LocationNullable
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_cors import CORS
 from matplotlib import pyplot as plt
@@ -61,6 +62,8 @@ def get_games_by_date(date):
     game_finder = leaguegamefinder.LeagueGameFinder(
         date_from_nullable=formatted_date,
         date_to_nullable=formatted_date,
+        location_nullable=LocationNullable.default,
+        league_id_nullable="00",
         headers=STATS_HEADERS,
     )
 
@@ -70,7 +73,102 @@ def get_games_by_date(date):
     # Convert DataFrame to list of dictionaries with selected columns
     games_list = games_dataframe.to_dict(orient="records")
 
-    return jsonify({"games": games_list})
+    # Combine and format the data based on home and away teams
+    combined_data = combine_game_data(games_list)
+
+    return jsonify({"games": combined_data})
+
+
+# Function to combine and format game data based on home and away teams
+def combine_game_data(data):
+    # Create a dictionary to store combined data
+    combined_data = {}
+
+    # Iterate through the list of dictionaries
+    for game in data:
+        game_id = game["GAME_ID"]
+
+        # Check if the game_id is already in combined_data
+        if game_id not in combined_data:
+            combined_data[game_id] = {}
+
+        # Determine home and away teams
+        home_team = game if "vs." in game["MATCHUP"] else None
+        away_team = game if "@" in game["MATCHUP"] else None
+
+        # Combine data for home and away teams
+        if home_team:
+            combined_data[game_id]["HOME"] = home_team
+        elif away_team:
+            combined_data[game_id]["AWAY"] = away_team
+
+    # Create a list to store the final combined data
+    final_combined_data = []
+
+    # Iterate through the combined data
+    for game_id, teams_data in combined_data.items():
+        home_team = teams_data.get("HOME", {})
+        away_team = teams_data.get("AWAY", {})
+
+        combined_game_data = {
+            "HOME_AST": home_team.get("AST", None),
+            "AWAY_AST": away_team.get("AST", None),
+            "HOME_BLK": home_team.get("BLK", None),
+            "AWAY_BLK": away_team.get("BLK", None),
+            "HOME_DREB": home_team.get("DREB", None),
+            "AWAY_DREB": away_team.get("DREB", None),
+            "HOME_FG3A": home_team.get("FG3A", None),
+            "AWAY_FG3A": away_team.get("FG3A", None),
+            "HOME_FG3M": home_team.get("FG3M", None),
+            "AWAY_FG3M": away_team.get("FG3M", None),
+            "HOME_FG3_PCT": home_team.get("FG3_PCT", None),
+            "AWAY_FG3_PCT": away_team.get("FG3_PCT", None),
+            "HOME_FGA": home_team.get("FGA", None),
+            "AWAY_FGA": away_team.get("FGA", None),
+            "HOME_FGM": home_team.get("FGM", None),
+            "AWAY_FGM": away_team.get("FGM", None),
+            "HOME_FG_PCT": home_team.get("FG_PCT", None),
+            "AWAY_FG_PCT": away_team.get("FG_PCT", None),
+            "HOME_FTA": home_team.get("FTA", None),
+            "AWAY_FTA": away_team.get("FTA", None),
+            "HOME_FTM": home_team.get("FTM", None),
+            "AWAY_FTM": away_team.get("FTM", None),
+            "HOME_FT_PCT": home_team.get("FT_PCT", None),
+            "AWAY_FT_PCT": away_team.get("FT_PCT", None),
+            "GAME_DATE": home_team.get("GAME_DATE", None),
+            "GAME_ID": game_id,
+            "MATCHUP": f"{away_team.get('TEAM_ABBREVIATION', '')} @ {home_team.get('TEAM_ABBREVIATION', '')}",
+            "HOME_MIN": home_team.get("MIN", None),
+            "AWAY_MIN": away_team.get("MIN", None),
+            "HOME_OREB": home_team.get("OREB", None),
+            "AWAY_OREB": away_team.get("OREB", None),
+            "HOME_PF": home_team.get("PF", None),
+            "AWAY_PF": away_team.get("PF", None),
+            "HOME_PLUS_MINUS": home_team.get("PLUS_MINUS", None),
+            "AWAY_PLUS_MINUS": away_team.get("PLUS_MINUS", None),
+            "HOME_PTS": home_team.get("PTS", None),
+            "AWAY_PTS": away_team.get("PTS", None),
+            "HOME_REB": home_team.get("REB", None),
+            "AWAY_REB": away_team.get("REB", None),
+            "SEASON_ID": home_team.get("SEASON_ID", None),
+            "HOME_STL": home_team.get("STL", None),
+            "AWAY_STL": away_team.get("STL", None),
+            "HOME_TEAM_ABBREVIATION": home_team.get("TEAM_ABBREVIATION", None),
+            "AWAY_TEAM_ABBREVIATION": away_team.get("TEAM_ABBREVIATION", None),
+            "HOME_TEAM_ID": home_team.get("TEAM_ID", None),
+            "AWAY_TEAM_ID": away_team.get("TEAM_ID", None),
+            "HOME_TEAM_NAME": home_team.get("TEAM_NAME", None),
+            "AWAY_TEAM_NAME": away_team.get("TEAM_NAME", None),
+            "HOME_TOV": home_team.get("TOV", None),
+            "AWAY_TOV": away_team.get("TOV", None),
+            "HOME_WL": home_team.get("WL", None),
+            "AWAY_WL": away_team.get("WL", None),
+        }
+
+        # Append the combined game data to the final list
+        final_combined_data.append(combined_game_data)
+
+    return final_combined_data
 
 
 # Endpoint for shot chart with parameters

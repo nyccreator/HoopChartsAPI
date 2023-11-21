@@ -1,3 +1,5 @@
+from io import BytesIO
+import requests
 from flask import Flask, jsonify, send_file, request
 from nba_api.stats.library.parameters import LocationNullable
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -10,6 +12,7 @@ from nba_api.stats.static import teams
 from nba_api.stats.endpoints import shotchartdetail, leaguegamefinder
 import matplotlib.colors as mc
 import colorsys
+import cairosvg
 
 # Use the 'Agg' backend for Matplotlib
 import matplotlib
@@ -37,6 +40,44 @@ STATS_HEADERS = {
     "Pragma": "no-cache",
     "Cache-Control": "no-cache",
 }
+
+
+# Endpoint to get a team's light logo by abbreviation
+# Sample URL: http://127.0.0.1:5000/api/nba/images/logos/team/LAL
+@app.route("/api/nba/images/logos/team/<abbreviation>", methods=["GET"])
+def get_team_logo(abbreviation):
+    team = teams.find_team_by_abbreviation(abbreviation)
+
+    if not team:
+        return jsonify({"error": "Team not found"}), 404
+
+    team_id = team["id"]
+    logo_url = f"https://cdn.nba.com/logos/nba/{team_id}/primary/L/logo.svg"
+
+    # Fetch the SVG logo from the URL
+    try:
+        response = requests.get(logo_url)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": f"Error fetching logo: {e}"}), 500
+
+    # Convert the SVG data to PNG using cairosvg
+    try:
+        svg_data = response.text
+        png_data = cairosvg.svg2png(bytestring=svg_data)
+    except Exception as e:
+        return jsonify({"error": f"Error converting SVG to PNG: {e}"}), 500
+
+    # Use BytesIO to create a stream for the image data
+    image_data = BytesIO(png_data)
+
+    # Return the image data in the response
+    return send_file(
+        image_data,
+        mimetype="image/png",
+        as_attachment=True,
+        download_name=f"{abbreviation}_logo.png",
+    )
 
 
 # Endpoint to get a team by abbreviation
@@ -190,11 +231,11 @@ def get_shot_chart():
 
 
 def generate_shot_chart(
-    player_id,
-    game_id_nullable,
-    team_id,
-    season_type_all_star,
-    context_measure_simple="FGA",
+        player_id,
+        game_id_nullable,
+        team_id,
+        season_type_all_star,
+        context_measure_simple="FGA",
 ):
     # Your existing shot chart generation code
     shot_detail = shotchartdetail.ShotChartDetail(

@@ -43,16 +43,18 @@ STATS_HEADERS = {
 
 
 # Endpoint to get a team's light logo by abbreviation
-# Sample URL: http://127.0.0.1:5000/api/nba/images/logos/team/LAL
-@app.route("/api/nba/images/logos/team/<abbreviation>", methods=["GET"])
-def get_team_logo(abbreviation):
+# Sample URL: https://normal-dinosaur-yearly.ngrok-free.app/api/nba/images/logos/team/dark/LAL
+@app.route("/api/nba/images/logos/team/<theme>/<abbreviation>", methods=["GET"])
+def get_team_logo_light(theme, abbreviation):
     team = teams.find_team_by_abbreviation(abbreviation)
 
     if not team:
         return jsonify({"error": "Team not found"}), 404
 
     team_id = team["id"]
-    logo_url = f"https://cdn.nba.com/logos/nba/{team_id}/primary/L/logo.svg"
+    letter = theme.upper()[0] if theme.lower() in ["light", "dark"] else "L"
+
+    logo_url = f"https://cdn.nba.com/logos/nba/{team_id}/primary/{letter}/logo.svg"
 
     # Fetch the SVG logo from the URL
     try:
@@ -81,7 +83,7 @@ def get_team_logo(abbreviation):
 
 
 # Endpoint to get a team by abbreviation
-# Sample URL: http://127.0.0.1:5000/api/nba/team/LAL
+# Sample URL: https://normal-dinosaur-yearly.ngrok-free.app/api/nba/team/LAL
 @app.route("/api/nba/team/<abbreviation>", methods=["GET"])
 def get_team_by_abbreviation(abbreviation):
     team = teams.find_team_by_abbreviation(abbreviation)
@@ -93,7 +95,7 @@ def get_team_by_abbreviation(abbreviation):
 
 
 # Endpoint to get all NBA games on a certain date
-# Sample URL: http://127.0.0.1:5000/api/nba/games/11-17-2023
+# Sample URL: https://normal-dinosaur-yearly.ngrok-free.app/api/nba/games/11-17-2023
 @app.route("/api/nba/games/<date>", methods=["GET"])
 def get_games_by_date(date):
     # Convert the date from the URL to the required format (e.g., "03-28-2021" to "03/28/2021")
@@ -213,7 +215,7 @@ def combine_game_data(data):
 
 
 # Endpoint for shot chart with parameters
-# Sample URL: http://127.0.0.1:5000/api/nba/shot_chart?player_id=203076&game_id_nullable=0042200233&team_id=1610612747&season_type_all_star=Playoffs
+# Sample URL: https://normal-dinosaur-yearly.ngrok-free.app/api/nba/shot_chart?player_id=203076&game_id_nullable=0042200233&team_id=1610612747&season_type_all_star=Playoffs
 @app.route("/api/nba/shot_chart", methods=["GET"])
 def get_shot_chart():
     player_id = request.args.get("player_id")
@@ -231,11 +233,11 @@ def get_shot_chart():
 
 
 def generate_shot_chart(
-        player_id,
-        game_id_nullable,
-        team_id,
-        season_type_all_star,
-        context_measure_simple="FGA",
+    player_id,
+    game_id_nullable,
+    team_id,
+    season_type_all_star,
+    context_measure_simple="FGA",
 ):
     # Your existing shot chart generation code
     shot_detail = shotchartdetail.ShotChartDetail(
@@ -398,7 +400,7 @@ def draw_court(ax=None, color=lighten_color("White", 1), lw=3, outer_lines=False
 
 
 # Endpoint to get today's NBA scoreboard
-# Sample URL: http://127.0.0.1:5000/api/nba/todays_scoreboard
+# Sample URL: https://normal-dinosaur-yearly.ngrok-free.app/api/nba/todays_scoreboard
 @app.route("/api/nba/todays_scoreboard", methods=["GET"])
 def get_todays_scoreboard():
     games = scoreboard.ScoreBoard()

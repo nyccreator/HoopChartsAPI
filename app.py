@@ -45,7 +45,7 @@ STATS_HEADERS = {
 # Endpoint to get a team's light logo by abbreviation
 # Sample URL: https://normal-dinosaur-yearly.ngrok-free.app/api/nba/images/logos/team/dark/LAL
 @app.route("/api/nba/images/logos/team/<theme>/<abbreviation>", methods=["GET"])
-def get_team_logo_light(theme, abbreviation):
+def get_team_logo(theme, abbreviation):
     team = teams.find_team_by_abbreviation(abbreviation)
 
     if not team:

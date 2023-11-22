@@ -229,7 +229,11 @@ def get_shot_chart():
     shot_chart_filename = generate_shot_chart(
         player_id, game_id_nullable, team_id, season_type_all_star
     )
-    return send_file(shot_chart_filename, mimetype="image/png")
+    return send_file(
+        shot_chart_filename,
+        mimetype="image/png",
+        as_attachment=True,
+    )
 
 
 def generate_shot_chart(
@@ -239,7 +243,6 @@ def generate_shot_chart(
     season_type_all_star,
     context_measure_simple="FGA",
 ):
-    # Your existing shot chart generation code
     shot_detail = shotchartdetail.ShotChartDetail(
         player_id=player_id,
         game_id_nullable=game_id_nullable,
@@ -303,7 +306,7 @@ def lighten_color(color_name, amount=0.5):
     return lightened_color_rgb
 
 
-def draw_court(ax=None, color=lighten_color("White", 1), lw=3, outer_lines=False):
+def draw_court(ax=None, color=lighten_color("white", 1), lw=3, outer_lines=False):
     # If an axes object isn't provided to plot onto, just get current one
     if ax is None:
         ax = plt.gca()

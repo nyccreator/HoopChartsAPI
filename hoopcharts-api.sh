@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Start Flask app
-gunicorn app:app &
+gunicorn -w 5 app:app &
 
 # Store the PID of the last background process (gunicorn)
 pid1=$!

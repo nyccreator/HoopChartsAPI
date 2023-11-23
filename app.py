@@ -94,6 +94,66 @@ def get_team_by_abbreviation(abbreviation):
         return jsonify({"error": "Team not found"}), 404
 
 
+@app.route("/api/nba/unplayedgames/<date>", methods=["GET"])
+def get_unplayed_games_by_date(date):
+    url = "https://stats.nba.com/stats/internationalbroadcasterschedule"
+
+    formatted_date = datetime.strptime(date, "%m-%d-%Y").strftime("%m/%d/%Y")
+
+    # Extract the year from the provided date parameter
+    year = formatted_date.split("/")[2]
+
+    # Define the parameters for the API request
+    params = {
+        "LeagueID": "00",
+        "Season": year,
+        "RegionID": "0",
+        "Date": formatted_date,
+        "EST": "Y",
+    }
+
+    # Make the API request
+    response = requests.get(url, params=params)
+
+    # Check if the request was successful (status code 200)
+    if response.status_code == 200:
+        # Extract relevant information from the API response
+        data = response.json()
+        unplayed_games_list = data["resultSets"][1]["CompleteGameList"]
+
+        # Use a set to keep track of unique game IDs
+        unique_game_ids = set()
+
+        unplayed_games = []
+
+        for game in unplayed_games_list:
+            game_id = game["gameID"]
+
+            # Check if the game ID is unique
+            if game_id not in unique_game_ids:
+                unique_game_ids.add(game_id)
+
+                unplayed_game = {
+                    "GAME_ID": game_id,
+                    "HOME_TEAM_ABBREVIATION": game["htAbbreviation"],
+                    "AWAY_TEAM_ABBREVIATION": game["vtAbbreviation"],
+                    "HOME_TEAM_NAME": f"{game['htCity']} {game['htNickName']}",
+                    "AWAY_TEAM_NAME": f"{game['vtCity']} {game['vtNickName']}",
+                    "MATCHUP": f"{game['vtAbbreviation']} @ {game['htAbbreviation']}",
+                }
+                unplayed_games.append(unplayed_game)
+
+        if not unplayed_games:
+            return jsonify({"games": []})
+
+        return jsonify({"games": unplayed_games})
+    else:
+        # If the request was not successful, return an error message
+        return jsonify(
+            {"error": f"Failed to retrieve data. Status code: {response.status_code}"}
+        )
+
+
 # Endpoint to get all NBA games on a certain date
 # Sample URL: https://normal-dinosaur-yearly.ngrok-free.app/api/nba/games/11-17-2023
 @app.route("/api/nba/games/<date>", methods=["GET"])
@@ -118,6 +178,10 @@ def get_games_by_date(date):
 
     # Combine and format the data based on home and away teams
     combined_data = combine_game_data(games_list)
+
+    if not combined_data:
+        # If the result is empty, call the second endpoint
+        return get_unplayed_games_by_date(date)
 
     return jsonify({"games": combined_data})
 
@@ -189,8 +253,8 @@ def combine_game_data(data):
             "AWAY_PF": away_team.get("PF", None),
             "HOME_PLUS_MINUS": home_team.get("PLUS_MINUS", None),
             "AWAY_PLUS_MINUS": away_team.get("PLUS_MINUS", None),
-            "HOME_PTS": home_team.get("PTS", None),
-            "AWAY_PTS": away_team.get("PTS", None),
+            "HOME_PTS": str(home_team.get("PTS", None)),
+            "AWAY_PTS": str(away_team.get("PTS", None)),
             "HOME_REB": home_team.get("REB", None),
             "AWAY_REB": away_team.get("REB", None),
             "SEASON_ID": home_team.get("SEASON_ID", None),
